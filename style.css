@@ -1,0 +1,450 @@
+:root {
+    --bg-dark: #121820;
+    --bg-card: #1B262C;
+    --text-main: #FFFFFF;
+    --text-muted: #8E9BAE;
+    
+    --accent-lime: #95c328;
+    --accent-pink: #f01a5b;
+    --accent-orange: #ff9800;
+    --accent-purple: #8a2be2;
+    
+    --font-heading: 'Montserrat', sans-serif;
+    --font-body: 'Nunito', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+#app {
+    width: 100%;
+    max-width: 480px;
+    background-color: var(--bg-dark);
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Screens */
+.screen {
+    display: none;
+    flex-direction: column;
+    padding: 20px;
+    animation: fadeIn 0.4s ease forwards;
+    flex: 1;
+}
+
+.screen.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-top: 10px;
+}
+
+header h1 {
+    font-family: var(--font-heading);
+    font-size: 2.2rem;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+header h1 span {
+    color: var(--accent-pink);
+}
+
+/* Cards */
+.card {
+    background-color: var(--bg-card);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.card h2 {
+    font-family: var(--font-heading);
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#players-count-badge {
+    color: var(--accent-purple);
+    font-size: 1rem;
+    margin-left: 5px;
+}
+
+/* Collapsible Card */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 0;
+    transition: margin 0.3s;
+}
+
+.card:not(.collapsed) .card-header {
+    margin-bottom: 15px;
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+    color: var(--accent-lime);
+    font-size: 0.8rem;
+}
+
+.card.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.card-content {
+    max-height: 1000px;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, opacity 0.3s;
+    opacity: 1;
+}
+
+.card.collapsed .card-content {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.list-container {
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Custom Scrollbar */
+.list-container::-webkit-scrollbar {
+    width: 4px;
+}
+.list-container::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+}
+.list-container::-webkit-scrollbar-thumb {
+    background: var(--accent-purple);
+    border-radius: 10px;
+}
+
+/* Inputs & Buttons */
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+input[type="text"] {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 12px 15px;
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus {
+    border-color: var(--accent-purple);
+}
+
+button {
+    font-family: var(--font-heading);
+    cursor: pointer;
+    border: none;
+    outline: none;
+    border-radius: 8px;
+    transition: transform 0.1s, opacity 0.3s;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-primary {
+    background-color: var(--accent-purple);
+    color: white;
+    width: 46px;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-large {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.2rem;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+}
+
+.btn-play {
+    background-color: var(--accent-lime);
+    color: #121820;
+    box-shadow: 0 4px 15px rgba(149, 195, 40, 0.4);
+}
+
+.btn-secondary {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-danger {
+    background-color: var(--accent-pink);
+    color: white;
+    box-shadow: 0 4px 15px rgba(240, 26, 91, 0.4);
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Player List */
+#players-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.player-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.03);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 1rem;
+    border-left: 4px solid var(--accent-orange);
+}
+
+.delete-player {
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    padding: 0 5px;
+}
+.delete-player:hover {
+    color: var(--accent-pink);
+}
+
+/* Categories */
+.categories-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.category-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.category-label input {
+    display: none;
+}
+
+.custom-checkbox {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--accent-lime);
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.category-label input:checked + .custom-checkbox {
+    background-color: var(--accent-lime);
+}
+
+.category-label input:checked + .custom-checkbox::after {
+    content: '✓';
+    color: #121820;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Settings Control */
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.1rem;
+}
+
+.number-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#impostors-count {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    width: 30px;
+    text-align: center;
+}
+
+.error-msg {
+    color: var(--accent-pink);
+    font-size: 0.85rem;
+    margin-top: 10px;
+    min-height: 20px;
+    text-align: center;
+}
+
+/* Game Screen */
+.game-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.game-header h2 {
+    font-family: var(--font-heading);
+    color: var(--accent-lime);
+    font-size: 1.8rem;
+}
+
+.game-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.starter-info {
+    text-align: center;
+    margin-bottom: 40px;
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: 16px;
+    width: 100%;
+    border-top: 4px solid var(--accent-purple);
+}
+
+.starter-info p {
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+#starter-name {
+    font-family: var(--font-heading);
+    font-size: 2.2rem;
+    color: var(--text-main);
+}
+
+.game-actions {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#reveal-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeIn 0.5s ease forwards;
+}
+
+.result-card {
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.result-card.danger {
+    border: 2px solid rgba(240, 26, 91, 0.3);
+}
+
+.result-card .label {
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.highlight-word {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    color: var(--accent-orange);
+    text-transform: uppercase;
+}
+
+.impostors-list {
+    list-style: none;
+}
+
+.impostors-list li {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--accent-pink);
+    margin-bottom: 5px;
+}
+
+.actions {
+    margin-top: auto;
+    padding-top: 20px;
+}

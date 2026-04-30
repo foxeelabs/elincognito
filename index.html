@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>El Incógnito</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Nunito:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <!-- PANTALLA DE CONFIGURACIÓN -->
+        <section id="config-screen" class="screen active">
+            <header>
+                <h1>EL <span>Incógnito</span></h1>
+            </header>
+
+            <div class="card collapsible collapsed" id="players-card">
+                <div class="card-header" id="players-toggle">
+                    <h2>Jugadores <span id="players-count-badge">(0)</span></h2>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="card-content">
+                    <div class="input-group">
+                        <input type="text" id="new-player-input" placeholder="Nombre del jugador" maxlength="15">
+                        <button id="add-player-btn" class="btn-primary">+</button>
+                    </div>
+                    <div class="list-container">
+                        <ul id="players-list">
+                            <!-- Jugadores renderizados aquí -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Categorías</h2>
+                <div class="categories-grid">
+                    <label class="category-label">
+                        <input type="checkbox" value="Comida" checked>
+                        <span class="custom-checkbox"></span>
+                        Comida
+                    </label>
+                    <label class="category-label">
+                        <input type="checkbox" value="Lugares" checked>
+                        <span class="custom-checkbox"></span>
+                        Lugares
+                    </label>
+                    <label class="category-label">
+                        <input type="checkbox" value="Películas" checked>
+                        <span class="custom-checkbox"></span>
+                        Películas
+                    </label>
+                    <label class="category-label">
+                        <input type="checkbox" value="Objetos" checked>
+                        <span class="custom-checkbox"></span>
+                        Objetos
+                    </label>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Configuración</h2>
+                <div class="setting-row">
+                    <span>Cantidad de Incógnitos</span>
+                    <div class="number-control">
+                        <button id="dec-impostors" class="btn-icon">-</button>
+                        <span id="impostors-count">1</span>
+                        <button id="inc-impostors" class="btn-icon">+</button>
+                    </div>
+                </div>
+                <div id="validation-msg" class="error-msg"></div>
+            </div>
+
+            <div class="actions">
+                <button id="start-btn" class="btn-large btn-play">▶ INICIAR PARTIDA</button>
+                <button id="reset-btn" class="btn-secondary">⟲ Reiniciar Sesión</button>
+            </div>
+        </section>
+
+        <!-- PANTALLA DE JUEGO -->
+        <section id="game-screen" class="screen">
+            <div class="game-header">
+                <h2>Ronda Activa</h2>
+            </div>
+
+            <div class="game-content">
+                <div class="starter-info">
+                    <p>Inicia el juego:</p>
+                    <h3 id="starter-name">Nombre</h3>
+                </div>
+
+                <div class="game-actions">
+                    <button id="reveal-btn" class="btn-large btn-danger">Revelar Incógnito(s)</button>
+                </div>
+
+                <div id="reveal-area" class="hidden">
+                    <div class="result-card">
+                        <p class="label">La palabra era:</p>
+                        <h3 id="secret-word" class="highlight-word">Palabra</h3>
+                    </div>
+
+                    <div class="result-card danger">
+                        <p class="label">Los Incógnitos son:</p>
+                        <ul id="impostors-list" class="impostors-list">
+                            <!-- Incógnitos aquí -->
+                        </ul>
+                    </div>
+
+                    <button id="next-round-btn" class="btn-large btn-primary">Siguiente Ronda</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
