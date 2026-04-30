@@ -29,6 +29,7 @@
                         <input type="text" id="new-player-input" placeholder="Nombre del jugador" maxlength="15">
                         <button id="add-player-btn" class="btn-primary">+</button>
                     </div>
+
                     <div class="list-container">
                         <ul id="players-list">
                             <!-- Jugadores renderizados aquí -->
@@ -60,6 +61,11 @@
                         <span class="custom-checkbox"></span>
                         Objetos
                     </label>
+                    <label class="category-label">
+                        <input type="checkbox" value="Animales" checked>
+                        <span class="custom-checkbox"></span>
+                        Animales
+                    </label>
                 </div>
             </div>
 
@@ -78,45 +84,109 @@
 
             <div class="actions">
                 <button id="start-btn" class="btn-large btn-play">▶ INICIAR PARTIDA</button>
-                <button id="reset-btn" class="btn-secondary">⟲ Reiniciar Sesión</button>
+                <button id="clear-players-btn" class="btn-secondary" style="border: 1px solid var(--accent-pink); color: var(--text-main); margin-bottom: 10px;">🗑️ Borrar a todos los jugadores</button>
+                <button id="reset-btn" class="btn-secondary" style="border-color: var(--text-muted); color: var(--text-muted);">⟲ Reiniciar Sesión</button>
             </div>
         </section>
 
-        <!-- PANTALLA DE JUEGO -->
+        <!-- PANTALLA DE REVELACIÓN INDIVIDUAL -->
+        <section id="role-reveal-screen" class="screen">
+            <div class="game-header">
+                <h2>Pasa el teléfono</h2>
+                <p id="reveal-progress" style="color: var(--accent-lime); font-size: 1.1rem; margin-top: 5px; font-family: var(--font-heading);">Jugador 1 de 10</p>
+            </div>
+            
+            <div class="game-content" style="justify-content: center;">
+                <p class="instruction-text" style="text-align:center; color:var(--text-muted); margin-bottom:20px;">
+                    Es el turno de:
+                </p>
+                
+                <div id="interactive-card" class="reveal-card">
+                    <div class="card-front">
+                        <h3 id="reveal-player-name">Nombre</h3>
+                        <p class="hint">Mantén presionado para ver</p>
+                    </div>
+                    <div class="card-back hidden">
+                        <h3 id="reveal-secret-info" class="highlight-word">Palabra/Rol</h3>
+                    </div>
+                </div>
+
+                <div class="actions" style="width:100%; display: flex; flex-direction: column; gap: 5px;">
+                    <button id="next-player-btn" class="btn-large btn-primary" style="margin-bottom: 0;">Siguiente</button>
+                    <button id="prev-player-btn" class="btn-secondary" style="padding: 10px; border: none; background: transparent; color: var(--text-muted); display: none;">Anterior</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANTALLA DE JUEGO (RONDA ACTIVA) -->
         <section id="game-screen" class="screen">
             <div class="game-header">
                 <h2>Ronda Activa</h2>
             </div>
-
+            
             <div class="game-content">
                 <div class="starter-info">
                     <p>Inicia el juego:</p>
                     <h3 id="starter-name">Nombre</h3>
                 </div>
-
-                <div class="game-actions">
+                
+                <div class="actions">
                     <button id="reveal-btn" class="btn-large btn-danger">Revelar Incógnito(s)</button>
                 </div>
+            </div>
+        </section>
 
-                <div id="reveal-area" class="hidden">
+        <!-- PANTALLA DE CONFIRMACIÓN INTERMEDIA -->
+        <section id="confirm-reveal-screen" class="screen">
+            <div class="game-header">
+                <h2>¿Terminar Ronda?</h2>
+            </div>
+            
+            <div class="game-content" style="justify-content: center; text-align: center;">
+                <p style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 30px;">
+                    ¿Estás seguro de querer revelarlos ya?
+                </p>
+                
+                <div class="actions" style="width: 100%;">
+                    <button id="confirm-yes-btn" class="btn-large btn-danger" style="margin-bottom: 10px;">Sí, revelar</button>
+                    <button id="confirm-no-btn" class="btn-large btn-secondary">No, volver al juego</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PANTALLA DE RESULTADOS FINALES -->
+        <section id="results-screen" class="screen">
+            <div class="game-header">
+                <h2>Resultados</h2>
+            </div>
+            
+            <div class="game-content">
+                <div id="reveal-area" style="width: 100%; display: flex; flex-direction: column; gap: 20px;">
                     <div class="result-card">
                         <p class="label">La palabra era:</p>
                         <h3 id="secret-word" class="highlight-word">Palabra</h3>
                     </div>
-
+                    
                     <div class="result-card danger">
                         <p class="label">Los Incógnitos son:</p>
                         <ul id="impostors-list" class="impostors-list">
                             <!-- Incógnitos aquí -->
                         </ul>
                     </div>
+                </div>
 
+                <div class="actions">
                     <button id="next-round-btn" class="btn-large btn-primary">Siguiente Ronda</button>
                 </div>
             </div>
         </section>
     </div>
 
+    <script src="data/comida.js"></script>
+    <script src="data/lugares.js"></script>
+    <script src="data/peliculas.js"></script>
+    <script src="data/objetos.js"></script>
+    <script src="data/animales.js"></script>
     <script src="script.js"></script>
 </body>
 
