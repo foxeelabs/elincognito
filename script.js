@@ -1,27 +1,52 @@
-// Datos iniciales
-const wordDatabase = {
-    "Comida": ["Tacos al pastor", "Tamales", "Pozole", "Chilaquiles", "Enchiladas", "Guacamole", "Elote en vaso", "Torta ahogada", "Mole", "Quesadillas", "Sopes", "Churros", "Barbacoa", "Carnitas", "Menudo"],
-    "Lugares": ["Xochimilco", "Teotihuacán", "Zócalo", "Cancún", "Tulum", "Chichén Itzá", "Chapultepec", "Cenote", "Mercado", "Trajinera", "Palenque", "Acapulco", "Guanajuato", "Bellas Artes", "Coyoacán"],
-    "Películas": ["Amores Perros", "Roma", "Nosotros los Nobles", "Coco", "El Laberinto del Fauno", "Macario", "Matando Cabos", "Y tu mamá también", "Rudo y Cursi", "La Ley de Herodes", "El Infierno", "Cantinflas"],
-    "Objetos": ["Piñata", "Molcajete", "Trompo", "Balero", "Matraca", "Sombrero charro", "Zarape", "Alebrije", "Maracas", "Metate", "Comal", "Guitarrón", "Rebozo"]
+let wordDatabase = {
+    "Comida": [],
+    "Lugares": [],
+    "Películas": [],
+    "Objetos": [],
+    "Animales": []
 };
+
+// Cargar categorías desde los scripts incluidos
+function loadCategories() {
+    wordDatabase["Comida"] = window.dataComida || [];
+    wordDatabase["Lugares"] = window.dataLugares || [];
+    wordDatabase["Películas"] = window.dataPeliculas || [];
+    wordDatabase["Objetos"] = window.dataObjetos || [];
+    wordDatabase["Animales"] = window.dataAnimales || [];
+    console.log("Categorías cargadas exitosamente (modo local)");
+}
 
 // Estado del juego
 let state = {
     players: [],
     impostorsCount: 1,
-    usedWords: []
+    selectedCategories: ["Comida", "Lugares", "Películas", "Objetos", "Animales"],
+    usedWords: [],
+    
+    // Variables de persistencia de partida
+    isActiveRound: false,
+    currentScreen: 'config-screen',
+    roundData: {
+        word: "",
+        impostors: [],
+        revealIndex: 0,
+        starter: ""
+    }
 };
 
 // Referencias DOM
 const screens = {
     config: document.getElementById('config-screen'),
-    game: document.getElementById('game-screen')
+    revealRoles: document.getElementById('role-reveal-screen'),
+    game: document.getElementById('game-screen'),
+    confirmReveal: document.getElementById('confirm-reveal-screen'),
+    results: document.getElementById('results-screen')
 };
 
 const dom = {
     playerInput: document.getElementById('new-player-input'),
     addPlayerBtn: document.getElementById('add-player-btn'),
+    clearPlayersBtn: document.getElementById('clear-players-btn'),
     playersList: document.getElementById('players-list'),
     playersCountBadge: document.getElementById('players-count-badge'),
     impostorsCountDisplay: document.getElementById('impostors-count'),
@@ -36,33 +61,63 @@ const dom = {
     playersCard: document.getElementById('players-card'),
     playersToggle: document.getElementById('players-toggle'),
     
+    // Reveal screen
+    interactiveCard: document.getElementById('interactive-card'),
+    cardFront: document.querySelector('.card-front'),
+    cardBack: document.querySelector('.card-back'),
+    revealPlayerName: document.getElementById('reveal-player-name'),
+    revealSecretInfo: document.getElementById('reveal-secret-info'),
+    nextPlayerBtn: document.getElementById('next-player-btn'),
+    prevPlayerBtn: document.getElementById('prev-player-btn'),
+    revealProgress: document.getElementById('reveal-progress'),
+    
     // Game screen
     starterName: document.getElementById('starter-name'),
     revealBtn: document.getElementById('reveal-btn'),
-    revealArea: document.getElementById('reveal-area'),
+    
+    // Confirmation & Results screens
+    confirmYesBtn: document.getElementById('confirm-yes-btn'),
+    confirmNoBtn: document.getElementById('confirm-no-btn'),
     secretWord: document.getElementById('secret-word'),
     impostorsListDisplay: document.getElementById('impostors-list'),
     nextRoundBtn: document.getElementById('next-round-btn')
 };
 
-// Variables de ronda
+// Variables Globales de la interfaz
 let currentWord = "";
 let currentImpostors = [];
+let currentRevealIndex = 0;
+let currentStarter = "";
 
 // Inicialización
 function init() {
+    loadCategories();
     loadState();
     renderPlayers();
     updateImpostorsDisplay();
     validateStart();
     setupEventListeners();
+    restoreActiveGame();
 }
 
 // LocalStorage
 function loadState() {
     const saved = localStorage.getItem('elIncognitoState');
     if (saved) {
-        state = JSON.parse(saved);
+        // Asegurar retrocompatibilidad combinando el estado guardado con la estructura por defecto
+        state = { ...state, ...JSON.parse(saved) };
+    }
+}
+
+// Función para cambiar de pantalla y guardarlo
+function switchScreen(screenId) {
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    
+    const targetScreen = document.getElementById(screenId);
+    if (targetScreen) {
+        targetScreen.classList.add('active');
+        state.currentScreen = screenId;
+        saveState();
     }
 }
 
@@ -89,6 +144,28 @@ function removePlayer(name) {
     validateStart();
 }
 
+function clearPlayers() {
+    if (state.players && state.players.length > 0) {
+        state.players = [];
+        saveState();
+        renderPlayers();
+        validateStart();
+        
+        // Dar algo de feedback visual al usuario
+        const originalText = dom.clearPlayersBtn.innerHTML;
+        dom.clearPlayersBtn.innerHTML = "✅ ¡Borrados!";
+        setTimeout(() => {
+            dom.clearPlayersBtn.innerHTML = originalText;
+        }, 2000);
+    } else {
+        const originalText = dom.clearPlayersBtn.innerHTML;
+        dom.clearPlayersBtn.innerHTML = "La lista ya está vacía";
+        setTimeout(() => {
+            dom.clearPlayersBtn.innerHTML = originalText;
+        }, 2000);
+    }
+}
+
 function renderPlayers() {
     dom.playersList.innerHTML = '';
     // Actualizar contador en el header
@@ -110,6 +187,12 @@ function renderPlayers() {
         li.appendChild(btn);
         dom.playersList.appendChild(li);
     });
+
+    // Auto-scroll al fondo para que se vea el último jugador agregado
+    const listContainer = document.querySelector('.list-container');
+    if (listContainer) {
+        listContainer.scrollTop = listContainer.scrollHeight;
+    }
 }
 
 // Ajuste de Embusteros
@@ -159,32 +242,48 @@ function validateStart() {
 }
 
 // Lógica de Juego Principal
-function startGame() {
+function prepareGame() {
     if (!validateStart()) return;
 
     const activeCategories = getSelectedCategories();
     
-    // Juntar todas las palabras posibles
-    let pool = [];
-    activeCategories.forEach(cat => {
-        pool = pool.concat(wordDatabase[cat]);
-    });
+    // Función auxiliar para obtener palabras disponibles de una categoría
+    const getAvailableWordsForCategory = (cat) => {
+        // Verificar si la categoría existe y tiene datos cargados
+        if (!wordDatabase[cat] || wordDatabase[cat].length === 0) return [];
+        return wordDatabase[cat].filter(w => !state.usedWords.includes(w));
+    };
 
-    // Filtrar las ya usadas
-    let availableWords = pool.filter(w => !state.usedWords.includes(w));
-    
-    // Si se acabaron las palabras, reiniciar la lista de usadas solo para las categorias activas
-    if (availableWords.length === 0) {
+    // Filtrar categorías que aún tienen palabras disponibles
+    let validCategories = activeCategories.filter(cat => getAvailableWordsForCategory(cat).length > 0);
+
+    // Si todas las categorías seleccionadas se agotaron, reiniciar usadas para esas categorías
+    if (validCategories.length === 0) {
         alert("¡Se han usado todas las palabras de estas categorías! Se reiniciará la lista de palabras.");
-        pool.forEach(w => {
-            state.usedWords = state.usedWords.filter(used => used !== w);
+        activeCategories.forEach(cat => {
+            if (wordDatabase[cat]) {
+                wordDatabase[cat].forEach(w => {
+                    state.usedWords = state.usedWords.filter(used => used !== w);
+                });
+            }
         });
-        availableWords = pool;
+        validCategories = activeCategories.filter(cat => getAvailableWordsForCategory(cat).length > 0);
+        
+        // Si sigue vacía (ej. error cargando JSON), cancelar
+        if (validCategories.length === 0) {
+            alert("Error: No se pudieron cargar las palabras. Asegúrate de ejecutar el juego en un servidor local.");
+            return;
+        }
     }
 
-    // Seleccionar palabra aleatoria
-    const wordIndex = Math.floor(Math.random() * availableWords.length);
-    currentWord = availableWords[wordIndex];
+    // 1. Escoger categoría aleatoria
+    const randomCategoryIndex = Math.floor(Math.random() * validCategories.length);
+    const chosenCategory = validCategories[randomCategoryIndex];
+
+    // 2. Escoger palabra aleatoria dentro de esa categoría
+    const categoryAvailableWords = getAvailableWordsForCategory(chosenCategory);
+    const wordIndex = Math.floor(Math.random() * categoryAvailableWords.length);
+    currentWord = categoryAvailableWords[wordIndex];
     
     // Asignar embusteros
     let shuffledPlayers = [...state.players].sort(() => 0.5 - Math.random());
@@ -193,13 +292,20 @@ function startGame() {
     // Seleccionar quién empieza (que NO sea embustero)
     const innocents = shuffledPlayers.slice(state.impostorsCount);
     const starter = innocents[Math.floor(Math.random() * innocents.length)];
+    currentStarter = starter;
+    
+    // Guardar estado de la ronda
+    state.isActiveRound = true;
+    state.roundData = {
+        word: currentWord,
+        impostors: currentImpostors,
+        revealIndex: 0,
+        starter: currentStarter
+    };
+    saveState();
 
     // Actualizar UI para pantalla de juego
-    dom.starterName.textContent = starter;
-    
-    // Ocultar area de revelar por defecto
-    dom.revealArea.classList.add('hidden');
-    dom.revealBtn.classList.remove('hidden');
+    dom.starterName.textContent = currentStarter;
     
     // Llenar datos ocultos
     dom.secretWord.textContent = currentWord;
@@ -210,37 +316,155 @@ function startGame() {
         dom.impostorsListDisplay.appendChild(li);
     });
 
-    // Cambiar de pantalla
-    screens.config.classList.remove('active');
-    screens.game.classList.add('active');
+    // Iniciar fase de revelación
+    startRevealPhase();
+}
+
+// Restaurar partida activa tras un recargo de la página
+function restoreActiveGame() {
+    if (state.isActiveRound) {
+        currentWord = state.roundData.word;
+        currentImpostors = state.roundData.impostors;
+        currentRevealIndex = state.roundData.revealIndex;
+        currentStarter = state.roundData.starter;
+
+        // Restaurar elementos de UI estáticos
+        dom.starterName.textContent = currentStarter;
+        dom.secretWord.textContent = currentWord;
+        dom.impostorsListDisplay.innerHTML = '';
+        currentImpostors.forEach(imp => {
+            const li = document.createElement('li');
+            li.textContent = imp;
+            dom.impostorsListDisplay.appendChild(li);
+        });
+
+        // Actualizar pantalla de revelación si estamos en ella
+        if (state.currentScreen === 'role-reveal-screen') {
+            updateRevealScreen();
+        }
+
+        // Ir a la pantalla donde nos quedamos
+        switchScreen(state.currentScreen);
+    } else {
+        switchScreen('config-screen');
+    }
+}
+
+// Fase de revelación de roles
+function startRevealPhase() {
+    currentRevealIndex = 0;
+    state.roundData.revealIndex = currentRevealIndex;
+    updateRevealScreen();
+    
+    switchScreen('role-reveal-screen');
+}
+
+function updateRevealScreen() {
+    const player = state.players[currentRevealIndex];
+    
+    // Configurar frente de la carta
+    dom.revealPlayerName.textContent = player;
+    
+    // Configurar reverso de la carta
+    if (currentImpostors.includes(player)) {
+        dom.revealSecretInfo.innerHTML = `<span class="reveal-prefix">hoy eres el</span><br>[ Incógnito ]`;
+        dom.revealSecretInfo.style.color = "var(--text-main)";
+    } else {
+        dom.revealSecretInfo.innerHTML = `<span class="reveal-prefix">la palabra es</span><br>[ ${currentWord} ]`;
+        dom.revealSecretInfo.style.color = "var(--text-main)";
+    }
+    
+    // Ocultar carta por defecto
+    dom.cardFront.classList.remove('hidden');
+    dom.cardBack.classList.add('hidden');
+    
+    // Actualizar progreso
+    dom.revealProgress.textContent = `Jugador ${currentRevealIndex + 1} de ${state.players.length}`;
+    
+    // Configurar botones
+    if (currentRevealIndex < state.players.length - 1) {
+        const nextPlayer = state.players[currentRevealIndex + 1];
+        dom.nextPlayerBtn.textContent = `Siguiente (${nextPlayer})`;
+    } else {
+        dom.nextPlayerBtn.textContent = "¡Jugar!";
+    }
+    
+    if (currentRevealIndex > 0) {
+        const prevPlayer = state.players[currentRevealIndex - 1];
+        dom.prevPlayerBtn.textContent = `Anterior (${prevPlayer})`;
+        dom.prevPlayerBtn.style.display = 'block';
+    } else {
+        dom.prevPlayerBtn.style.display = 'none';
+    }
+}
+
+function nextReveal() {
+    if (currentRevealIndex < state.players.length - 1) {
+        currentRevealIndex++;
+        state.roundData.revealIndex = currentRevealIndex;
+        saveState();
+        updateRevealScreen();
+    } else {
+        // Termina revelación, ir a juego activo
+        switchScreen('game-screen');
+    }
+}
+
+function prevReveal() {
+    if (currentRevealIndex > 0) {
+        currentRevealIndex--;
+        state.roundData.revealIndex = currentRevealIndex;
+        saveState();
+        updateRevealScreen();
+    }
+}
+
+function showCard() {
+    dom.cardFront.classList.add('hidden');
+    dom.cardBack.classList.remove('hidden');
+}
+
+function hideCard() {
+    dom.cardFront.classList.remove('hidden');
+    dom.cardBack.classList.add('hidden');
 }
 
 function revealImpostors() {
-    dom.revealBtn.classList.add('hidden');
-    dom.revealArea.classList.remove('hidden');
+    switchScreen('confirm-reveal-screen');
+}
+
+function confirmReveal() {
+    switchScreen('results-screen');
+}
+
+function cancelReveal() {
+    switchScreen('game-screen');
 }
 
 function nextRound() {
     // Registrar palabra como usada
     state.usedWords.push(currentWord);
+    
+    // Finalizar partida
+    state.isActiveRound = false;
     saveState();
 
     // Regresar a pantalla principal
-    screens.game.classList.remove('active');
-    screens.config.classList.add('active');
+    switchScreen('config-screen');
 }
 
 function resetSession() {
     if (confirm("¿Estás seguro de que quieres reiniciar la sesión? Esto borrará el historial de palabras usadas y la lista de jugadores.")) {
-        state = {
-            players: [],
-            impostorsCount: 1,
-            usedWords: []
-        };
+        state.players = [];
+        state.impostorsCount = 1;
+        state.usedWords = [];
+        state.isActiveRound = false;
         saveState();
+        
         renderPlayers();
         updateImpostorsDisplay();
         validateStart();
+        switchScreen('config-screen');
         
         dom.categoryCheckboxes.forEach(cb => cb.checked = true);
     }
@@ -249,6 +473,7 @@ function resetSession() {
 // Event Listeners
 function setupEventListeners() {
     dom.addPlayerBtn.addEventListener('click', addPlayer);
+    dom.clearPlayersBtn.addEventListener('click', clearPlayers);
     dom.playerInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addPlayer();
     });
@@ -260,14 +485,34 @@ function setupEventListeners() {
         cb.addEventListener('change', validateStart);
     });
 
-    dom.startBtn.addEventListener('click', startGame);
+    dom.startBtn.addEventListener('click', prepareGame);
     dom.resetBtn.addEventListener('click', resetSession);
 
     dom.playersToggle.addEventListener('click', () => {
         dom.playersCard.classList.toggle('collapsed');
     });
 
+    // Eventos de la carta de revelación
+    dom.interactiveCard.addEventListener('mousedown', showCard);
+    dom.interactiveCard.addEventListener('mouseup', hideCard);
+    dom.interactiveCard.addEventListener('mouseleave', hideCard);
+    
+    dom.interactiveCard.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Evitar comportamientos por defecto como scroll o zoom
+        showCard();
+    });
+    dom.interactiveCard.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        hideCard();
+    });
+    dom.interactiveCard.addEventListener('touchcancel', hideCard);
+
+    dom.nextPlayerBtn.addEventListener('click', nextReveal);
+    dom.prevPlayerBtn.addEventListener('click', prevReveal);
+
     dom.revealBtn.addEventListener('click', revealImpostors);
+    dom.confirmYesBtn.addEventListener('click', confirmReveal);
+    dom.confirmNoBtn.addEventListener('click', cancelReveal);
     dom.nextRoundBtn.addEventListener('click', nextRound);
 }
 
