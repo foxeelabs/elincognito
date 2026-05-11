@@ -271,12 +271,29 @@ button:disabled {
     border-left: 4px solid var(--accent-orange);
 }
 
-.delete-player {
+.player-actions {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.move-player, .delete-player {
     background: transparent;
     color: var(--text-muted);
     font-size: 1.2rem;
     padding: 0 5px;
 }
+
+.move-player:hover {
+    color: var(--accent-lime);
+}
+
+.move-player:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+    color: var(--text-muted);
+}
+
 .delete-player:hover {
     color: var(--accent-pink);
 }

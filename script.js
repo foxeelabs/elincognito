@@ -22,6 +22,8 @@ let state = {
     impostorsCount: 1,
     selectedCategories: ["Comida", "Lugares", "Películas", "Objetos", "Animales"],
     usedWords: [],
+    impostorHistory: {},
+    allowImpostorStart: false,
     
     // Variables de persistencia de partida
     isActiveRound: false,
@@ -53,6 +55,7 @@ const dom = {
     decImpostorsBtn: document.getElementById('dec-impostors'),
     incImpostorsBtn: document.getElementById('inc-impostors'),
     categoryCheckboxes: document.querySelectorAll('.category-label input'),
+    allowImpostorStartCb: document.getElementById('allow-impostor-start-cb'),
     validationMsg: document.getElementById('validation-msg'),
     startBtn: document.getElementById('start-btn'),
     resetBtn: document.getElementById('reset-btn'),
@@ -93,6 +96,11 @@ let currentStarter = "";
 function init() {
     loadCategories();
     loadState();
+    
+    if (dom.allowImpostorStartCb) {
+        dom.allowImpostorStartCb.checked = state.allowImpostorStart || false;
+    }
+    
     renderPlayers();
     updateImpostorsDisplay();
     validateStart();
@@ -178,13 +186,32 @@ function renderPlayers() {
         const span = document.createElement('span');
         span.textContent = `${index + 1}.- ${player}`;
         
-        const btn = document.createElement('button');
-        btn.className = 'delete-player';
-        btn.innerHTML = '×';
-        btn.onclick = () => removePlayer(player);
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'player-actions';
+
+        const upBtn = document.createElement('button');
+        upBtn.className = 'move-player';
+        upBtn.innerHTML = '↑';
+        upBtn.disabled = index === 0;
+        upBtn.onclick = () => movePlayer(index, -1);
+
+        const downBtn = document.createElement('button');
+        downBtn.className = 'move-player';
+        downBtn.innerHTML = '↓';
+        downBtn.disabled = index === state.players.length - 1;
+        downBtn.onclick = () => movePlayer(index, 1);
         
+        const delBtn = document.createElement('button');
+        delBtn.className = 'delete-player';
+        delBtn.innerHTML = '×';
+        delBtn.onclick = () => removePlayer(player);
+        
+        actionsDiv.appendChild(upBtn);
+        actionsDiv.appendChild(downBtn);
+        actionsDiv.appendChild(delBtn);
+
         li.appendChild(span);
-        li.appendChild(btn);
+        li.appendChild(actionsDiv);
         dom.playersList.appendChild(li);
     });
 
@@ -192,6 +219,17 @@ function renderPlayers() {
     const listContainer = document.querySelector('.list-container');
     if (listContainer) {
         listContainer.scrollTop = listContainer.scrollHeight;
+    }
+}
+
+function movePlayer(index, direction) {
+    const newIndex = index + direction;
+    if (newIndex >= 0 && newIndex < state.players.length) {
+        const temp = state.players[index];
+        state.players[index] = state.players[newIndex];
+        state.players[newIndex] = temp;
+        saveState();
+        renderPlayers();
     }
 }
 
@@ -285,13 +323,77 @@ function prepareGame() {
     const wordIndex = Math.floor(Math.random() * categoryAvailableWords.length);
     currentWord = categoryAvailableWords[wordIndex];
     
-    // Asignar embusteros
-    let shuffledPlayers = [...state.players].sort(() => 0.5 - Math.random());
-    currentImpostors = shuffledPlayers.slice(0, state.impostorsCount);
+    // Asignar embusteros con aleatoriedad equitativa y límite de racha
+    if (!state.impostorHistory) state.impostorHistory = {};
     
-    // Seleccionar quién empieza (que NO sea embustero)
-    const innocents = shuffledPlayers.slice(state.impostorsCount);
-    const starter = innocents[Math.floor(Math.random() * innocents.length)];
+    // Asegurar registro de todos los jugadores actuales
+    state.players.forEach(p => {
+        if (!state.impostorHistory[p]) {
+            state.impostorHistory[p] = { consecutive: 0, total: 0 };
+        }
+    });
+
+    // Separar jugadores que NO pueden ser incógnitos por racha (máximo 2 veces seguidas)
+    let eligiblePlayers = state.players.filter(p => state.impostorHistory[p].consecutive < 2);
+    
+    // Fallback: si el límite deja muy pocos elegibles, lo ignoramos temporalmente
+    if (eligiblePlayers.length < state.impostorsCount) {
+        eligiblePlayers = [...state.players];
+    }
+
+    // Algoritmo de "Rifa con Boletos": Damos más boletos a quienes menos han sido incógnitos
+    let maxTotal = Math.max(...eligiblePlayers.map(p => state.impostorHistory[p].total));
+    if (maxTotal === -Infinity) maxTotal = 0;
+    
+    let tickets = [];
+    eligiblePlayers.forEach(p => {
+        // Fórmula: el que menos veces ha sido, recibe más boletos. +1 asegura que todos tengan al menos 1 boleto.
+        let playerTickets = (maxTotal - state.impostorHistory[p].total) + 1;
+        for (let i = 0; i < playerTickets; i++) {
+            tickets.push(p);
+        }
+    });
+    
+    // Sacar a los incógnitos de la rifa
+    currentImpostors = [];
+    for (let i = 0; i < state.impostorsCount; i++) {
+        if (tickets.length === 0) break;
+        let randomTicketIndex = Math.floor(Math.random() * tickets.length);
+        let chosen = tickets[randomTicketIndex];
+        currentImpostors.push(chosen);
+        
+        // Quitar todos los boletos del jugador recién elegido para evitar elegirlo doble en esta ronda
+        tickets = tickets.filter(t => t !== chosen);
+    }
+    
+    // Si por algo faltó asignar, completamos aleatoriamente con los elegibles restantes
+    if (currentImpostors.length < state.impostorsCount) {
+        let remaining = eligiblePlayers.filter(p => !currentImpostors.includes(p));
+        let shuffledRemaining = remaining.sort(() => 0.5 - Math.random());
+        currentImpostors = currentImpostors.concat(shuffledRemaining.slice(0, state.impostorsCount - currentImpostors.length));
+    }
+
+    // Actualizar el historial para la próxima ronda
+    state.players.forEach(p => {
+        if (currentImpostors.includes(p)) {
+            state.impostorHistory[p].consecutive += 1;
+            state.impostorHistory[p].total += 1;
+        } else {
+            state.impostorHistory[p].consecutive = 0; // Se resetea la racha si no fue incógnito
+        }
+    });
+    
+    // Seleccionar quién empieza
+    let possibleStarters;
+    if (state.allowImpostorStart) {
+        possibleStarters = state.players;
+    } else {
+        possibleStarters = state.players.filter(p => !currentImpostors.includes(p));
+    }
+    
+    const starter = possibleStarters.length > 0 
+        ? possibleStarters[Math.floor(Math.random() * possibleStarters.length)] 
+        : currentImpostors[0]; // Fallback por si todos son incógnitos
     currentStarter = starter;
     
     // Guardar estado de la ronda
@@ -458,6 +560,7 @@ function resetSession() {
         state.players = [];
         state.impostorsCount = 1;
         state.usedWords = [];
+        state.impostorHistory = {};
         state.isActiveRound = false;
         saveState();
         
@@ -484,6 +587,13 @@ function setupEventListeners() {
     dom.categoryCheckboxes.forEach(cb => {
         cb.addEventListener('change', validateStart);
     });
+
+    if (dom.allowImpostorStartCb) {
+        dom.allowImpostorStartCb.addEventListener('change', (e) => {
+            state.allowImpostorStart = e.target.checked;
+            saveState();
+        });
+    }
 
     dom.startBtn.addEventListener('click', prepareGame);
     dom.resetBtn.addEventListener('click', resetSession);
