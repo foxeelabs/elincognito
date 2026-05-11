@@ -24,7 +24,7 @@ let state = {
     usedWords: [],
     impostorHistory: {},
     allowImpostorStart: false,
-    
+
     // Variables de persistencia de partida
     isActiveRound: false,
     currentScreen: 'config-screen',
@@ -59,11 +59,11 @@ const dom = {
     validationMsg: document.getElementById('validation-msg'),
     startBtn: document.getElementById('start-btn'),
     resetBtn: document.getElementById('reset-btn'),
-    
+
     // Collapsible
     playersCard: document.getElementById('players-card'),
     playersToggle: document.getElementById('players-toggle'),
-    
+
     // Reveal screen
     interactiveCard: document.getElementById('interactive-card'),
     cardFront: document.querySelector('.card-front'),
@@ -73,11 +73,11 @@ const dom = {
     nextPlayerBtn: document.getElementById('next-player-btn'),
     prevPlayerBtn: document.getElementById('prev-player-btn'),
     revealProgress: document.getElementById('reveal-progress'),
-    
+
     // Game screen
     starterName: document.getElementById('starter-name'),
     revealBtn: document.getElementById('reveal-btn'),
-    
+
     // Confirmation & Results screens
     confirmYesBtn: document.getElementById('confirm-yes-btn'),
     confirmNoBtn: document.getElementById('confirm-no-btn'),
@@ -96,11 +96,11 @@ let currentStarter = "";
 function init() {
     loadCategories();
     loadState();
-    
+
     if (dom.allowImpostorStartCb) {
         dom.allowImpostorStartCb.checked = state.allowImpostorStart || false;
     }
-    
+
     renderPlayers();
     updateImpostorsDisplay();
     validateStart();
@@ -120,7 +120,7 @@ function loadState() {
 // Función para cambiar de pantalla y guardarlo
 function switchScreen(screenId) {
     Object.values(screens).forEach(s => s.classList.remove('active'));
-    
+
     const targetScreen = document.getElementById(screenId);
     if (targetScreen) {
         targetScreen.classList.add('active');
@@ -158,7 +158,7 @@ function clearPlayers() {
         saveState();
         renderPlayers();
         validateStart();
-        
+
         // Dar algo de feedback visual al usuario
         const originalText = dom.clearPlayersBtn.innerHTML;
         dom.clearPlayersBtn.innerHTML = "✅ ¡Borrados!";
@@ -182,10 +182,10 @@ function renderPlayers() {
     state.players.forEach((player, index) => {
         const li = document.createElement('li');
         li.className = 'player-item';
-        
+
         const span = document.createElement('span');
         span.textContent = `${index + 1}.- ${player}`;
-        
+
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'player-actions';
 
@@ -200,12 +200,12 @@ function renderPlayers() {
         downBtn.innerHTML = '↓';
         downBtn.disabled = index === state.players.length - 1;
         downBtn.onclick = () => movePlayer(index, 1);
-        
+
         const delBtn = document.createElement('button');
         delBtn.className = 'delete-player';
         delBtn.innerHTML = '×';
         delBtn.onclick = () => removePlayer(player);
-        
+
         actionsDiv.appendChild(upBtn);
         actionsDiv.appendChild(downBtn);
         actionsDiv.appendChild(delBtn);
@@ -284,7 +284,7 @@ function prepareGame() {
     if (!validateStart()) return;
 
     const activeCategories = getSelectedCategories();
-    
+
     // Función auxiliar para obtener palabras disponibles de una categoría
     const getAvailableWordsForCategory = (cat) => {
         // Verificar si la categoría existe y tiene datos cargados
@@ -306,7 +306,7 @@ function prepareGame() {
             }
         });
         validCategories = activeCategories.filter(cat => getAvailableWordsForCategory(cat).length > 0);
-        
+
         // Si sigue vacía (ej. error cargando JSON), cancelar
         if (validCategories.length === 0) {
             alert("Error: No se pudieron cargar las palabras. Asegúrate de ejecutar el juego en un servidor local.");
@@ -322,10 +322,10 @@ function prepareGame() {
     const categoryAvailableWords = getAvailableWordsForCategory(chosenCategory);
     const wordIndex = Math.floor(Math.random() * categoryAvailableWords.length);
     currentWord = categoryAvailableWords[wordIndex];
-    
+
     // Asignar embusteros con aleatoriedad equitativa y límite de racha
     if (!state.impostorHistory) state.impostorHistory = {};
-    
+
     // Asegurar registro de todos los jugadores actuales
     state.players.forEach(p => {
         if (!state.impostorHistory[p]) {
@@ -335,7 +335,7 @@ function prepareGame() {
 
     // Separar jugadores que NO pueden ser incógnitos por racha (máximo 2 veces seguidas)
     let eligiblePlayers = state.players.filter(p => state.impostorHistory[p].consecutive < 2);
-    
+
     // Fallback: si el límite deja muy pocos elegibles, lo ignoramos temporalmente
     if (eligiblePlayers.length < state.impostorsCount) {
         eligiblePlayers = [...state.players];
@@ -344,7 +344,7 @@ function prepareGame() {
     // Algoritmo de "Rifa con Boletos": Damos más boletos a quienes menos han sido incógnitos
     let maxTotal = Math.max(...eligiblePlayers.map(p => state.impostorHistory[p].total));
     if (maxTotal === -Infinity) maxTotal = 0;
-    
+
     let tickets = [];
     eligiblePlayers.forEach(p => {
         // Fórmula: el que menos veces ha sido, recibe más boletos. +1 asegura que todos tengan al menos 1 boleto.
@@ -353,7 +353,7 @@ function prepareGame() {
             tickets.push(p);
         }
     });
-    
+
     // Sacar a los incógnitos de la rifa
     currentImpostors = [];
     for (let i = 0; i < state.impostorsCount; i++) {
@@ -361,11 +361,11 @@ function prepareGame() {
         let randomTicketIndex = Math.floor(Math.random() * tickets.length);
         let chosen = tickets[randomTicketIndex];
         currentImpostors.push(chosen);
-        
+
         // Quitar todos los boletos del jugador recién elegido para evitar elegirlo doble en esta ronda
         tickets = tickets.filter(t => t !== chosen);
     }
-    
+
     // Si por algo faltó asignar, completamos aleatoriamente con los elegibles restantes
     if (currentImpostors.length < state.impostorsCount) {
         let remaining = eligiblePlayers.filter(p => !currentImpostors.includes(p));
@@ -382,7 +382,7 @@ function prepareGame() {
             state.impostorHistory[p].consecutive = 0; // Se resetea la racha si no fue incógnito
         }
     });
-    
+
     // Seleccionar quién empieza
     let possibleStarters;
     if (state.allowImpostorStart) {
@@ -390,12 +390,12 @@ function prepareGame() {
     } else {
         possibleStarters = state.players.filter(p => !currentImpostors.includes(p));
     }
-    
-    const starter = possibleStarters.length > 0 
-        ? possibleStarters[Math.floor(Math.random() * possibleStarters.length)] 
+
+    const starter = possibleStarters.length > 0
+        ? possibleStarters[Math.floor(Math.random() * possibleStarters.length)]
         : currentImpostors[0]; // Fallback por si todos son incógnitos
     currentStarter = starter;
-    
+
     // Guardar estado de la ronda
     state.isActiveRound = true;
     state.roundData = {
@@ -408,7 +408,7 @@ function prepareGame() {
 
     // Actualizar UI para pantalla de juego
     dom.starterName.textContent = currentStarter;
-    
+
     // Llenar datos ocultos
     dom.secretWord.textContent = currentWord;
     dom.impostorsListDisplay.innerHTML = '';
@@ -457,32 +457,32 @@ function startRevealPhase() {
     currentRevealIndex = 0;
     state.roundData.revealIndex = currentRevealIndex;
     updateRevealScreen();
-    
+
     switchScreen('role-reveal-screen');
 }
 
 function updateRevealScreen() {
     const player = state.players[currentRevealIndex];
-    
+
     // Configurar frente de la carta
     dom.revealPlayerName.textContent = player;
-    
+
     // Configurar reverso de la carta
     if (currentImpostors.includes(player)) {
-        dom.revealSecretInfo.innerHTML = `<span class="reveal-prefix">hoy eres el</span><br>[ Incógnito ]`;
+        dom.revealSecretInfo.innerHTML = `<span class="reveal-prefix">hoy eres TU el</span><br>[ Incógnito ]`;
         dom.revealSecretInfo.style.color = "var(--text-main)";
     } else {
         dom.revealSecretInfo.innerHTML = `<span class="reveal-prefix">la palabra es</span><br>[ ${currentWord} ]`;
         dom.revealSecretInfo.style.color = "var(--text-main)";
     }
-    
+
     // Ocultar carta por defecto
     dom.cardFront.classList.remove('hidden');
     dom.cardBack.classList.add('hidden');
-    
+
     // Actualizar progreso
     dom.revealProgress.textContent = `Jugador ${currentRevealIndex + 1} de ${state.players.length}`;
-    
+
     // Configurar botones
     if (currentRevealIndex < state.players.length - 1) {
         const nextPlayer = state.players[currentRevealIndex + 1];
@@ -490,7 +490,7 @@ function updateRevealScreen() {
     } else {
         dom.nextPlayerBtn.textContent = "¡Jugar!";
     }
-    
+
     if (currentRevealIndex > 0) {
         const prevPlayer = state.players[currentRevealIndex - 1];
         dom.prevPlayerBtn.textContent = `Anterior (${prevPlayer})`;
@@ -546,7 +546,7 @@ function cancelReveal() {
 function nextRound() {
     // Registrar palabra como usada
     state.usedWords.push(currentWord);
-    
+
     // Finalizar partida
     state.isActiveRound = false;
     saveState();
@@ -563,12 +563,12 @@ function resetSession() {
         state.impostorHistory = {};
         state.isActiveRound = false;
         saveState();
-        
+
         renderPlayers();
         updateImpostorsDisplay();
         validateStart();
         switchScreen('config-screen');
-        
+
         dom.categoryCheckboxes.forEach(cb => cb.checked = true);
     }
 }
@@ -606,7 +606,7 @@ function setupEventListeners() {
     dom.interactiveCard.addEventListener('mousedown', showCard);
     dom.interactiveCard.addEventListener('mouseup', hideCard);
     dom.interactiveCard.addEventListener('mouseleave', hideCard);
-    
+
     dom.interactiveCard.addEventListener('touchstart', (e) => {
         e.preventDefault(); // Evitar comportamientos por defecto como scroll o zoom
         showCard();

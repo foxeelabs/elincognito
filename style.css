@@ -3,12 +3,12 @@
     --bg-card: #1B262C;
     --text-main: #FFFFFF;
     --text-muted: #8E9BAE;
-    
+
     --accent-lime: #95c328;
     --accent-pink: #f01a5b;
     --accent-orange: #ff9800;
     --accent-purple: #8a2be2;
-    
+
     --font-heading: 'Montserrat', sans-serif;
     --font-body: 'Nunito', sans-serif;
 }
@@ -29,12 +29,31 @@ body {
     overflow-x: hidden;
 }
 
+/* Banner Superior */
+.top-banner-container {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    background-color: #d0d9f4;
+    /* Evita que el texto de abajo se encime */
+    z-index: 9999;
+}
+
+.top-banner {
+    height: 35px;
+    /* Tamaño discreto */
+    opacity: 0.7;
+}
+
 #app {
     width: 100%;
     max-width: 480px;
     background-color: var(--bg-dark);
     position: relative;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -54,15 +73,22 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Header */
 header {
     text-align: center;
-    margin-bottom: 25px;
-    padding-top: 10px;
+    margin-bottom: 10px;
+    padding-top: 1px;
 }
 
 header h1 {
@@ -81,9 +107,9 @@ header h1 span {
 .card {
     background-color: var(--bg-card);
     border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    padding: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .card h2 {
@@ -147,9 +173,11 @@ header h1 span {
 .list-container::-webkit-scrollbar {
     width: 4px;
 }
+
 .list-container::-webkit-scrollbar-track {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
 }
+
 .list-container::-webkit-scrollbar-thumb {
     background: var(--accent-purple);
     border-radius: 10px;
@@ -164,8 +192,8 @@ header h1 span {
 
 input[type="text"] {
     flex: 1;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     padding: 12px 15px;
     color: var(--text-main);
@@ -244,7 +272,7 @@ button:disabled {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
     font-size: 1.2rem;
     display: flex;
@@ -264,7 +292,7 @@ button:disabled {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
     padding: 10px 15px;
     border-radius: 8px;
     font-size: 1rem;
@@ -277,7 +305,8 @@ button:disabled {
     align-items: center;
 }
 
-.move-player, .delete-player {
+.move-player,
+.delete-player {
     background: transparent;
     color: var(--text-muted);
     font-size: 1.2rem;
@@ -328,11 +357,11 @@ button:disabled {
     transition: background 0.2s;
 }
 
-.category-label input:checked + .custom-checkbox {
+.category-label input:checked+.custom-checkbox {
     background-color: var(--accent-lime);
 }
 
-.category-label input:checked + .custom-checkbox::after {
+.category-label input:checked+.custom-checkbox::after {
     content: '✓';
     color: #121820;
     font-weight: bold;
@@ -463,7 +492,7 @@ button:disabled {
 
 .actions {
     margin-top: auto;
-    padding-top: 20px;
+    padding-top: 5px;
     width: 100%;
 }
 
@@ -492,7 +521,8 @@ button:disabled {
     transform: scale(0.97);
 }
 
-.card-front, .card-back {
+.card-front,
+.card-back {
     width: 100%;
     animation: fadeIn 0.3s ease forwards;
 }
@@ -513,9 +543,17 @@ button:disabled {
 }
 
 @keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
 }
 
 #reveal-secret-info {
